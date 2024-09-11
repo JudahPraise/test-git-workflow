@@ -23,8 +23,8 @@ jobs:
           # Loop through each pattern
           for PATTERN in "${PATTERNS[@]}"
           do
-            #Use grep to search for the pattern, excluding vendor directory
-            RESULT=$(grep -r -n "$PATTERN" --include=\*.php --exclude-dir=vendor --exclude-dir=resources --exclude-dir=public . || true)
+            # Use grep to search for the pattern, excluding specific directories
+            RESULT=$(grep -r -n -F "$PATTERN" --include=\*.php --exclude-dir=vendor --exclude-dir=resources --exclude-dir=public . || true)
 
             if [ ! -z "$RESULT" ]; then
               echo "Found $PATTERN:"
@@ -33,13 +33,10 @@ jobs:
             fi
           done
 
-        if[ $FOUND_DEBUG -eq 1]; then
-          echo "Error: Debug statements found. Please remove them before merging."
-          exit 1
-        else
-          echo "No debug statements found."
-        fi
-        
-
-        
-    
+          # Check the flag and exit with an error if debug statements were found
+          if [ $FOUND_DEBUG -eq 1 ]; then
+            echo "Error: Debug statements found. Please remove them before merging."
+            exit 1
+          else
+            echo "No debug statements found."
+          fi
