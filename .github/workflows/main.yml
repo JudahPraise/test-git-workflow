@@ -1,0 +1,45 @@
+name: Check for debug statements
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check_debug_statments:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Check for debug statements
+      run: | 
+        # Define the patterns to search for
+        PATTERNS=("dd(" "var_dump(" "error_log(")
+
+        # Initialize a flag to track if any debug statements are found
+        FOUND_DEBUG=0
+
+        # Loop through each pattern
+        for PATTERN in "${PATTERNS[@]}"
+        do
+          #Use grep to search for the pattern, excluding vendor directory
+          RESULT=$(grep -r -n "$PATTERN" --include=\*.php --exclude-dir=vendor . || true)
+
+          if [ ! -z "$RESULT" ]; then
+            echo "Found $PATTERN:"
+            echo "$RESULT"
+            FOUND_DEBUG=1
+          fi
+        done
+
+        if[ $FOUND_DEBUG -eq 1]; then
+          echo "Error: Debug statements found. Please remove them before merging."
+          exit 1
+        else
+          echo "No debug statements found."
+        fi
+        
+
+        
+    
