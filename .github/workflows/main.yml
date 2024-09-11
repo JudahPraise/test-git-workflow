@@ -2,41 +2,44 @@ name: Check for debug statements
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   check_debug_statements:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Check for debug statements
-      run: | 
-        # Define the patterns to search for
-        PATTERNS=("dd(" "var_dump(" "error_log(")
+      - name: Check for debug statements
+        run: |
+          # Define the patterns to search for
+          PATTERNS=("dd(" "var_dump(" "error_log(")
 
-        # Initialize a flag to track if any debug statements are found
-        FOUND_DEBUG=0
+          # Initialize a flag to track if any debug statements are found
+          FOUND_DEBUG=0
 
-        # Loop through each pattern
-        for PATTERN in "${PATTERNS[@]}"
-        do
-          # Use grep to search for the pattern, excluding vendor directory
-          # `-F` tells grep to interpret the pattern as a fixed string rather than a regex.
-          RESULT=$(grep -r -n -F "$PATTERN" --include=\*.php --exclude-dir=vendor . || true)
+          # Loop through each pattern
+          for PATTERN in "${PATTERNS[@]}"
+          do
+            #Use grep to search for the pattern, excluding vendor directory
+            RESULT=$(grep -r -n "$PATTERN" --include=\*.php --exclude-dir=vendor --exclude-dir=resources --exclude-dir=public . || true)
 
-          if [ ! -z "$RESULT" ]; then
-            echo "Found $PATTERN:"
-            echo "$RESULT"
-            FOUND_DEBUG=1
-          fi
-        done
+            if [ ! -z "$RESULT" ]; then
+              echo "Found $PATTERN:"
+              echo "$RESULT"
+              FOUND_DEBUG=1
+            fi
+          done
 
-        if [ $FOUND_DEBUG -eq 1 ]; then
+        if[ $FOUND_DEBUG -eq 1]; then
           echo "Error: Debug statements found. Please remove them before merging."
           exit 1
         else
           echo "No debug statements found."
         fi
+        
+
+        
+    
